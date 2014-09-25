@@ -1,10 +1,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QFileDialog>
 #include <QMessageBox>
 #include <QXmlStreamWriter>
 #include <QCloseEvent>
 #include <QDialogButtonBox>
+#include <QFileDialog>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -36,9 +36,32 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+//загрузка поля из файла
 void MainWindow::open_clicked()
 {
+    if(!m_isChangesSaved)//проверяем был ли сохранен текущий файл, если нет, то делаем запрос на сохранение
+    {
 
+        switch(onCloseMessageBox("Закрытие файла без сохранения"))
+        {
+            case QMessageBox::Save:
+                save_clicked();
+            break;
+            case QMessageBox::Discard:
+                return;
+            break;
+            default:
+            break;
+        }
+    }
+    QFileDialog openDialog(this);//переделать
+    openDialog.setNameFilter(tr("XML-файлы (*.xml)"));
+    openDialog.setAcceptMode(QFileDialog::AcceptOpen);
+    if(openDialog.exec())
+    {
+        m_fileName = openDialog.selectedFiles().at(0);
+        loadXML();
+    }
 }
 
 void MainWindow::on_disableAll_clicked()
@@ -63,12 +86,62 @@ void MainWindow::save_clicked()
     }
 }
 
+void MainWindow::loadXML()
+{
+    QFile file(m_fileName);
+    if (!file.open(QIODevice::ReadOnly))
+    {
+        QMessageBox::critical(this, "Ошибка", "Открыть файл не удалось.");
+    }
+    else
+    {
+        bool isFileValid = false;
+        int fieldIndex = 0;
+        QXmlStreamReader reader(&file);
+        while(!reader.atEnd() && !reader.hasError())
+        {
+            QXmlStreamReader::TokenType token = reader.readNext();
+            if(token == QXmlStreamReader::StartDocument)
+                continue;
+            if(token == QXmlStreamReader::StartElement)
+            {
+                if(reader.name() == "field")// проверка является ли файл вообще полем
+                                            //тэг field должен быть первым
+                {
+                    isFileValid = true;
+                    continue;
+                }
+                if(!isFileValid)
+                {
+                    QMessageBox::critical(this,"Неверный файл","Данный файл не является полем");
+                    break;
+                }
+
+                if(reader.name() == "cell")//парсим ячейки
+                {
+                    QXmlStreamAttributes attributes = reader.attributes();
+
+                    if(attributes.hasAttribute("existed"))
+                    {
+
+                        m_cellList.at(fieldIndex)->setState((bool)(attributes.value("existed").toInt()));
+                    }
+                    ++fieldIndex;
+                }
+            }
+        }
+        if(reader.hasError())
+            QMessageBox::critical(this,"Ошибка чтения",reader.errorString());
+        reader.clear();
+    }
+}
+
 void MainWindow::saveXML()
 {
    QFile file(m_fileName);
    if (!file.open(QIODevice::WriteOnly))
    {
-     QMessageBox::warning(0, "Ошибка", "Данный файл предназначен только для чтения.");
+     QMessageBox::critical(this, "Ошибка", "Запись не удалась.");
    }
    else
    {
@@ -98,7 +171,6 @@ void MainWindow::saveXML()
 void MainWindow::saveAs_clicked()
 {
     QFileDialog saveDialog(this);
-    saveDialog.setFileMode(QFileDialog::AnyFile);
     saveDialog.setNameFilter(tr("XML-файлы (*.xml)"));
     saveDialog.setAcceptMode(QFileDialog::AcceptSave);
     if(saveDialog.exec())
@@ -108,28 +180,32 @@ void MainWindow::saveAs_clicked()
     }
 }
 
+int MainWindow::onCloseMessageBox(const QString title, const QString description)
+{
+    QMessageBox msgBox;
+    msgBox.setText(title);
+    msgBox.setInformativeText(description);
+    msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Save);
+    return msgBox.exec();
+}
+
 void MainWindow::closeEvent(QCloseEvent *e)
 {
     if(!m_isChangesSaved)
     {
-        QMessageBox msgBox;
-        msgBox.setText("Выход без сохранения");
-        msgBox.setInformativeText("Сохранить изменения?");
-        msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
-        msgBox.setDefaultButton(QMessageBox::Save);
-        int res = msgBox.exec();
-        switch(res)
+        switch(onCloseMessageBox())
         {
-        case QMessageBox::Save:
-            save_clicked();
-            e->accept();
-        break;
-        case QMessageBox::Discard:
-            e->accept();
-        break;
-        case QMessageBox::Cancel:
-            e->ignore();
-        break;
+            case QMessageBox::Save:
+                save_clicked();
+                e->accept();
+            break;
+            case QMessageBox::Discard:
+                e->accept();
+            break;
+            case QMessageBox::Cancel:
+                e->ignore();
+            break;
         }
     }
 }

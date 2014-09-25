@@ -30,12 +30,17 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    QList<Cell*> m_cellList;
-    bool m_isChangesSaved;
-    QString m_fileName;
+    QList<Cell*> m_cellList;//контейнер с ячейками поля
+    bool m_isChangesSaved;//был ли сохранен текущий файл или нет
+    QString m_fileName;//имя сохраненного файла
 
-    void setStateForAllCells(bool existed);
-    void saveXML();
+    void setStateForAllCells(bool existed);//включаем/выключаем ячейки
+    void saveXML();//сохранение поля в файл
+    void loadXML();//загрузка поля
+    int onCloseMessageBox(const QString title = "Выход без сохранения",
+                          const QString description = "Сохранить изменения?");
+    //создает диалоговое окно для случая, когда пользователь выходит без сохранения
+
     virtual void closeEvent(QCloseEvent *e);
 
 public:
