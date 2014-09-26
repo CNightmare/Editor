@@ -11,6 +11,12 @@ class MainWindow;
 }
 
 const QString defaultTitle = "Редактор полей";
+typedef enum
+{
+    ENABLE_CELLS = 0,
+    ADD_TILES,
+    ADD_LOCKED
+}EditorState;
 
 class MainWindow final : public QMainWindow
 {
@@ -28,11 +34,14 @@ private slots:
     void exit_clicked();
     void open_clicked();
 
+    void on_comboBox_currentIndexChanged(int index);
+
 private:
     Ui::MainWindow *ui;
     QList<Cell*> m_cellList;//контейнер с ячейками поля
     bool m_isChangesSaved;//был ли сохранен текущий файл или нет
     QString m_fileName;//имя сохраненного файла
+    EditorState m_eState;//режим редактирования
 
     void setStateForAllCells(bool existed);//включаем/выключаем ячейки
     void saveXML();//сохранение поля в файл
@@ -45,6 +54,7 @@ private:
 
 public:
     void setSaveState(bool isSaved);
+    EditorState getEditorState(){return m_eState;}
 };
 
 #endif // MAINWINDOW_H

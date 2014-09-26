@@ -22,3 +22,8 @@ HEADERS  += mainwindow.h \
 FORMS    += mainwindow.ui \
     cell.ui
 QMAKE_CXXFLAGS += -std=c++0x
+
+RESOURCES += \
+    tile.qrc
+
+OTHER_FILES +=

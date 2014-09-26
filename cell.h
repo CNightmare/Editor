@@ -13,21 +13,34 @@ class Cell : public QWidget
     Q_OBJECT
 
 public:
-    explicit Cell(bool existed,MainWindow *parent);
+    explicit Cell(MainWindow *parent);
     ~Cell();
+     //сеттеры
     void setState(bool existed);
-    bool getState();
+    void setTileState(bool isHasTile);
+    void setLockedLevel(int lLevel);
+
+    //аксессоры
+    bool getState(){return m_existed;}
+    bool getTileState(){return m_isHasTile;}
+    int getNumOfChains(){return m_lLevel;}
 private:
     Ui::Cell *ui;
 protected:
     virtual void mousePressEvent(QMouseEvent *event);
     virtual void resizeEvent(QResizeEvent *qre);
-    void changePaletteState();
+    void changePaletteState();//включение/отключение ячейки
 
-    MainWindow *m_mainWindow;
-    bool m_existed;
+    //=======Параметры ячейки
+    bool m_existed;// существует или нет
+    bool m_isHasTile;//имеет ли плитку
+    unsigned char m_lLevel; //количество цепей
+    //=======
+
+    MainWindow *m_mainWindow; 
     QPalette whitePalette;
     QPalette blackPalette;
+
 };
 
 #endif // CELL_H

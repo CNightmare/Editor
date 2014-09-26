@@ -10,14 +10,15 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     m_isChangesSaved(true),
-    m_fileName(QString())
+    m_fileName(QString()),
+    m_eState(ENABLE_CELLS)
 {
     ui->setupUi(this);
     for(int i=0;i<10;i++)
     {
         for(int j=0;j<10;j++)
         {
-            Cell *cell = new Cell(true,this);
+            Cell *cell = new Cell(this);
             m_cellList.append(cell);
             ui->fieldLayout->addWidget(m_cellList.back(),i,j);
         }
@@ -121,10 +122,21 @@ void MainWindow::loadXML()
                 {
                     QXmlStreamAttributes attributes = reader.attributes();
 
+                    m_cellList.at(fieldIndex)->setState(true);
+                    m_cellList.at(fieldIndex)->setState(true);
+                    m_cellList.at(fieldIndex)->setLockedLevel(0);
+
                     if(attributes.hasAttribute("existed"))
                     {
-
                         m_cellList.at(fieldIndex)->setState((bool)(attributes.value("existed").toInt()));
+                    }
+                    if(attributes.hasAttribute("tile"))
+                    {
+                        m_cellList.at(fieldIndex)->setTileState((bool)(attributes.value("tile").toInt()));
+                    }
+                    if(attributes.hasAttribute("chains"))
+                    {
+                        m_cellList.at(fieldIndex)->setLockedLevel((bool)(attributes.value("chains").toInt()));
                     }
                     ++fieldIndex;
                 }
@@ -155,8 +167,14 @@ void MainWindow::saveXML()
             {
                 writer.writeStartElement("cell");
                 {
-                    QString existedValue = QString::number(static_cast<int>((*it)->getState()));
-                    writer.writeAttribute("existed",existedValue);
+                    QString paramValue = QString::number(static_cast<int>((*it)->getState()));
+                    writer.writeAttribute("existed",paramValue);
+
+                    paramValue = QString::number(static_cast<int>((*it)->getTileState()));
+                    writer.writeAttribute("tile",paramValue);
+
+                    paramValue = QString::number((*it)->getNumOfChains());
+                    writer.writeAttribute("chains",paramValue);
                 }
                 writer.writeEndElement();
             }
@@ -237,4 +255,9 @@ void MainWindow::setStateForAllCells(bool existed)
 void MainWindow::on_enableAll_clicked()
 {
     setStateForAllCells(true);
+}
+
+void MainWindow::on_comboBox_currentIndexChanged(int index)
+{
+    m_eState = static_cast<EditorState>(index);
 }
