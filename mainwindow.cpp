@@ -4,7 +4,6 @@
 #include <QXmlStreamWriter>
 #include <QCloseEvent>
 #include <QDialogButtonBox>
-#include <QFileDialog>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -209,14 +208,7 @@ void MainWindow::on_comboBox_currentIndexChanged(int index)
 
 void MainWindow::on_saveAs_triggered()
 {
-    QFileDialog saveDialog(this);
-    saveDialog.setNameFilter(tr("XML-файлы (*.xml)"));
-    saveDialog.setAcceptMode(QFileDialog::AcceptSave);
-    if(saveDialog.exec())
-    {
-        m_fileName = saveDialog.selectedFiles().at(0);
-        saveXML();
-    }
+    createFileDialog(QFileDialog::AcceptSave);
 }
 
 void MainWindow::on_exit_triggered()
@@ -253,18 +245,31 @@ void MainWindow::on_open_triggered()
             break;
         }
     }
-    QFileDialog openDialog(this);//переделать
-    openDialog.setNameFilter(tr("XML-файлы (*.xml)"));
-    openDialog.setAcceptMode(QFileDialog::AcceptOpen);
-    if(openDialog.exec())
-    {
-        m_fileName = openDialog.selectedFiles().at(0);
-        loadXML();
-    }
+    createFileDialog(QFileDialog::AcceptOpen);
 }
 
 void MainWindow::on_about_triggered()
 {
     QMessageBox::about(this,"О программе","Данная программа предназначена для создания полей для игр в жанре match-3.\n"
                        "Автор: Пинаев Дмитрий. 2014г.");
+}
+
+void MainWindow::createFileDialog(QFileDialog::AcceptMode mode)
+{
+    QFileDialog fileDialog(this);
+    fileDialog.setNameFilter(tr("XML-файлы (*.xml)"));
+    fileDialog.setAcceptMode(mode);
+    if(fileDialog.exec())
+    {
+        m_fileName = fileDialog.selectedFiles().at(0);
+        switch(mode)
+        {
+            case QFileDialog::AcceptOpen:
+                loadXML();
+            break;
+            case QFileDialog::AcceptSave:
+                saveXML();
+            break;
+        }
+    }
 }

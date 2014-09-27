@@ -5,6 +5,7 @@
 #include "cell.h"
 #include <QList>
 #include <QString>
+#include <QFileDialog>
 
 namespace Ui {
 class MainWindow;
@@ -50,9 +51,12 @@ private:
     void setStateForAllCells(bool existed);//включаем/выключаем ячейки
     void saveXML();//сохранение поля в файл
     void loadXML();//загрузка поля
+
     int onCloseMessageBox(const QString title = "Выход без сохранения",
                           const QString description = "Сохранить изменения?");
     //создает диалоговое окно для случая, когда пользователь выходит без сохранения
+
+    void createFileDialog(QFileDialog::AcceptMode mode);
 
     virtual void closeEvent(QCloseEvent *e);
 
