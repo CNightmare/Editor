@@ -116,16 +116,29 @@
     <addaction name="saveAs"/>
     <addaction name="exit"/>
    </widget>
+   <widget class="QMenu" name="menu_2">
+    <property name="title">
+     <string>Помощь</string>
+    </property>
+    <addaction name="about"/>
+   </widget>
    <addaction name="menu"/>
+   <addaction name="menu_2"/>
   </widget>
   <action name="saveAs">
    <property name="text">
     <string>Сохранить как...</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
+   </property>
   </action>
   <action name="exit">
    <property name="text">
     <string>Выход</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+W</string>
    </property>
   </action>
   <action name="save">
@@ -135,10 +148,21 @@
    <property name="text">
     <string>Сохранить</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
   </action>
   <action name="open">
    <property name="text">
     <string>Открыть...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="about">
+   <property name="text">
+    <string>О программе...</string>
    </property>
   </action>
  </widget>

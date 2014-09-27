@@ -29,12 +29,16 @@ public:
 private slots:
     void on_disableAll_clicked();
     void on_enableAll_clicked();
-    void saveAs_clicked();
-    void save_clicked();
-    void exit_clicked();
-    void open_clicked();
 
     void on_comboBox_currentIndexChanged(int index);
+
+    //слоты меню
+    void on_saveAs_triggered();
+    void on_exit_triggered();
+    void on_save_triggered();
+    void on_open_triggered();
+
+    void on_about_triggered();
 
 private:
     Ui::MainWindow *ui;

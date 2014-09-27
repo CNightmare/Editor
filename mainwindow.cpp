@@ -14,6 +14,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_eState(ENABLE_CELLS)
 {
     ui->setupUi(this);
+
+    //создаем ячейки
     for(int i=0;i<10;i++)
     {
         for(int j=0;j<10;j++)
@@ -23,13 +25,8 @@ MainWindow::MainWindow(QWidget *parent) :
             ui->fieldLayout->addWidget(m_cellList.back(),i,j);
         }
     }
-    ui->buttonsLayout->setAlignment(Qt::AlignLeft|Qt::AlignTop);
 
-    //привязка слотов для пунктов меню
-    connect(ui->saveAs,SIGNAL(triggered()),this,SLOT(saveAs_clicked()));
-    connect(ui->save,SIGNAL(triggered()),this,SLOT(save_clicked()));
-    connect(ui->exit,SIGNAL(triggered()),this,SLOT(exit_clicked()));
-    connect(ui->open,SIGNAL(triggered()),this,SLOT(open_clicked()));
+    ui->buttonsLayout->setAlignment(Qt::AlignLeft|Qt::AlignTop);
 }
 
 MainWindow::~MainWindow()
@@ -37,54 +34,9 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-//загрузка поля из файла
-void MainWindow::open_clicked()
-{
-    if(!m_isChangesSaved)//проверяем был ли сохранен текущий файл, если нет, то делаем запрос на сохранение
-    {
-
-        switch(onCloseMessageBox("Закрытие файла без сохранения"))
-        {
-            case QMessageBox::Save:
-                save_clicked();
-            break;
-            case QMessageBox::Discard:
-                return;
-            break;
-            default:
-            break;
-        }
-    }
-    QFileDialog openDialog(this);//переделать
-    openDialog.setNameFilter(tr("XML-файлы (*.xml)"));
-    openDialog.setAcceptMode(QFileDialog::AcceptOpen);
-    if(openDialog.exec())
-    {
-        m_fileName = openDialog.selectedFiles().at(0);
-        loadXML();
-    }
-}
-
 void MainWindow::on_disableAll_clicked()
 {
     setStateForAllCells(false);
-}
-
-void MainWindow::exit_clicked()
-{
-    this->close();
-}
-
-void MainWindow::save_clicked()
-{
-    if(m_fileName.isEmpty())
-    {
-        saveAs_clicked();
-    }
-    else
-    {
-        saveXML();
-    }
 }
 
 void MainWindow::loadXML()
@@ -126,18 +78,21 @@ void MainWindow::loadXML()
                     m_cellList.at(fieldIndex)->setState(true);
                     m_cellList.at(fieldIndex)->setLockedLevel(0);
 
-                    if(attributes.hasAttribute("existed"))
+                    if(attributes.hasAttribute("existed"))//активна ли ячейка
                     {
                         m_cellList.at(fieldIndex)->setState((bool)(attributes.value("existed").toInt()));
                     }
-                    if(attributes.hasAttribute("tile"))
+
+                    if(attributes.hasAttribute("tile"))//наличие плитки
                     {
                         m_cellList.at(fieldIndex)->setTileState((bool)(attributes.value("tile").toInt()));
                     }
-                    if(attributes.hasAttribute("chains"))
+
+                    if(attributes.hasAttribute("chains"))//цепи
                     {
                         m_cellList.at(fieldIndex)->setLockedLevel((bool)(attributes.value("chains").toInt()));
                     }
+
                     ++fieldIndex;
                 }
             }
@@ -186,18 +141,6 @@ void MainWindow::saveXML()
    }
 }
 
-void MainWindow::saveAs_clicked()
-{
-    QFileDialog saveDialog(this);
-    saveDialog.setNameFilter(tr("XML-файлы (*.xml)"));
-    saveDialog.setAcceptMode(QFileDialog::AcceptSave);
-    if(saveDialog.exec())
-    {
-        m_fileName = saveDialog.selectedFiles().at(0);
-        saveXML();
-    }
-}
-
 int MainWindow::onCloseMessageBox(const QString title, const QString description)
 {
     QMessageBox msgBox;
@@ -208,6 +151,7 @@ int MainWindow::onCloseMessageBox(const QString title, const QString description
     return msgBox.exec();
 }
 
+//отлавливаем закрытие приложения и предлагаем пользователю сохранить изменения
 void MainWindow::closeEvent(QCloseEvent *e)
 {
     if(!m_isChangesSaved)
@@ -215,7 +159,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
         switch(onCloseMessageBox())
         {
             case QMessageBox::Save:
-                save_clicked();
+                on_saveAs_triggered();
                 e->accept();
             break;
             case QMessageBox::Discard:
@@ -228,6 +172,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
     }
 }
 
+//сохранены изменения или нет
 void MainWindow::setSaveState(bool isSaved)
 {
     m_isChangesSaved = isSaved;
@@ -260,4 +205,66 @@ void MainWindow::on_enableAll_clicked()
 void MainWindow::on_comboBox_currentIndexChanged(int index)
 {
     m_eState = static_cast<EditorState>(index);
+}
+
+void MainWindow::on_saveAs_triggered()
+{
+    QFileDialog saveDialog(this);
+    saveDialog.setNameFilter(tr("XML-файлы (*.xml)"));
+    saveDialog.setAcceptMode(QFileDialog::AcceptSave);
+    if(saveDialog.exec())
+    {
+        m_fileName = saveDialog.selectedFiles().at(0);
+        saveXML();
+    }
+}
+
+void MainWindow::on_exit_triggered()
+{
+    close();
+}
+
+void MainWindow::on_save_triggered()
+{
+    if(m_fileName.isEmpty())
+    {
+        on_saveAs_triggered();
+    }
+    else
+    {
+        saveXML();
+    }
+}
+
+void MainWindow::on_open_triggered()
+{
+    if(!m_isChangesSaved)//проверяем был ли сохранен текущий файл, если нет, то делаем запрос на сохранение
+    {
+
+        switch(onCloseMessageBox("Закрытие файла без сохранения"))
+        {
+            case QMessageBox::Save:
+                on_saveAs_triggered();
+            break;
+            case QMessageBox::Discard:
+                return;
+            break;
+            default:
+            break;
+        }
+    }
+    QFileDialog openDialog(this);//переделать
+    openDialog.setNameFilter(tr("XML-файлы (*.xml)"));
+    openDialog.setAcceptMode(QFileDialog::AcceptOpen);
+    if(openDialog.exec())
+    {
+        m_fileName = openDialog.selectedFiles().at(0);
+        loadXML();
+    }
+}
+
+void MainWindow::on_about_triggered()
+{
+    QMessageBox::about(this,"О программе","Данная программа предназначена для создания полей для игр в жанре match-3.\n"
+                       "Автор: Пинаев Дмитрий. 2014г.");
 }
